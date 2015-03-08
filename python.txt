@@ -1,2 +1,3 @@
+cd /d D:\Dropbox\TTU\Project\3W3D
 c:\python34\python -m http.server
 localhost:8000

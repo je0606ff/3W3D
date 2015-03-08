@@ -34,7 +34,7 @@ rather,
 git checkout -b gh-pages
 git push origin gh-pages
 然後就會有一個網址叫
-http://je0606ff.github.io/3W3D/XXX.html
+http://je0606ff.github.io/3W3D/index.html
 的網站了。
 
 可編輯一份 index.html, with proper links to other files

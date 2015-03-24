@@ -44,7 +44,8 @@ var controls;
 var keyboard = new KeyboardState();
 var column_1,column_2;
 var platform_1,platform_2;
-var door,door_handle,door_key;
+var door,door_handle1,door_key2;
+var door_handle1,door_key2;
 var pivot_1,pivot_2;
 var open = false;
 init();
@@ -138,19 +139,31 @@ function init()
 	
 	var door_handle_Geom = new THREE.CylinderGeometry(1,1,3,32);
 	var door_handle_material = new THREE.MeshLambertMaterial({color: 0x888888, wireframe:false});
-	door_handle = new THREE.Mesh(door_handle_Geom, door_handle_material);
-	door_handle.translateOnAxis (new THREE.Vector3(1,0,0), -25);
-	door_handle.translateOnAxis (new THREE.Vector3(0,1,0), -20);
-	door_handle.rotation.x = Math.PI/2;
-	pivot_1.add(door_handle);
+	door_handle1 = new THREE.Mesh(door_handle_Geom, door_handle_material);
+	door_handle1.translateOnAxis (new THREE.Vector3(1,0,0), -25);
+	door_handle1.translateOnAxis (new THREE.Vector3(0,1,0), -20);
+	door_handle1.rotation.x = Math.PI/2;
+	
+	door_handle2 = new THREE.Mesh(door_handle_Geom, door_handle_material);
+	door_handle2.translateOnAxis (new THREE.Vector3(1,0,0), -25);
+	door_handle2.translateOnAxis (new THREE.Vector3(0,1,0), -20);
+	door_handle2.translateOnAxis (new THREE.Vector3(0,0,1), -5);
+	door_handle2.rotation.x = Math.PI/2;
+	pivot_1.add(door_handle1);
+	pivot_1.add(door_handle2);
 	
 	var door_key_Geom = new THREE.SphereGeometry(2,32,16);
 	var door_key_material = new THREE.MeshLambertMaterial({color: 0xd0f0dd, wireframe:false});
-	door_key = new THREE.Mesh(door_key_Geom, door_key_material);
-	door_key.translateOnAxis (new THREE.Vector3(1,0,0), -25);
-	door_key.translateOnAxis (new THREE.Vector3(0,1,0), -20);
-	door_key.translateOnAxis (new THREE.Vector3(0,0,1), 3);
-	pivot_1.add(door_key);
+	door_key1 = new THREE.Mesh(door_key_Geom, door_key_material);
+	door_key1.translateOnAxis (new THREE.Vector3(1,0,0), -25);
+	door_key1.translateOnAxis (new THREE.Vector3(0,1,0), -20);
+	door_key1.translateOnAxis (new THREE.Vector3(0,0,1), 3);
+	door_key2 = new THREE.Mesh(door_key_Geom, door_key_material);
+	door_key2.translateOnAxis (new THREE.Vector3(1,0,0), -25);
+	door_key2.translateOnAxis (new THREE.Vector3(0,1,0), -20);
+	door_key2.translateOnAxis (new THREE.Vector3(0,0,1), -8);
+	pivot_1.add(door_key1);
+	pivot_1.add(door_key2);
 	
 	scene.add(column_1);
 	scene.add(column_2);

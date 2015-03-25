@@ -34,8 +34,12 @@
 <script src="js/r69/three.min.js"></script>
 <script src="js/OrbitControls.js"></script>
 <script src="js/KeyboardState.js"></script>
-</script>
-
+<audio id="open_soundtrack">
+<source src="sounds/open.mp3" type='audio/mp3' loop="false">
+</audio>
+<audio id="close_soundtrack">
+<source src="sounds/close.mp3" type='audio/mp3' loop="false">
+</audio>
 <script>
 
 var scene, renderer, camera;
@@ -48,6 +52,7 @@ var door,door_handle1,door_key2;
 var door_handle1,door_key2;
 var pivot_1,pivot_2;
 var open = false;
+var open_soundtrack,close_soundtrack;
 init();
 animate();
 
@@ -60,7 +65,11 @@ function init()
 	renderer.setClearColor (0x888888);
 	
 	document.body.appendChild (renderer.domElement);
-
+	
+	//open_soundtrack
+	open_soundtrack = document.getElementById ('open_soundtrack');
+	close_soundtrack = document.getElementById ('close_soundtrack');
+	
 	scene = new THREE.Scene();
 	//camera 
 	camera = new THREE.PerspectiveCamera (45, width/height, 1, 10000);
@@ -199,16 +208,30 @@ function animate()
 function render()
 {	
 	if (open){
-		if (pivot_1.rotation.y > 2.5)
-			pivot_1.rotation.y == 2.5;
+		if (pivot_1.rotation.y > 2.4)
+		{
+			pivot_1.rotation.y == 2.4;
+			open_soundtrack.pause();
+		}
 		else
-			pivot_1.rotation.y += 0.05;
+		{
+			pivot_1.rotation.y += 0.02;
+			close_soundtrack.pause();
+			open_soundtrack.play();
+		}
 	}
 	else{
 		if (pivot_1.rotation.y < 0 || pivot_1.rotation.y == 0)
+		{
 			pivot_1.rotation.y == 0;
+			close_soundtrack.pause();
+		}
 		else
-			pivot_1.rotation.y -= 0.05;
+		{
+			pivot_1.rotation.y -= 0.015;
+			open_soundtrack.pause();
+			close_soundtrack.play();
+		}
 	}
 	//console.log(pivot_1.rotation.y);
 	renderer.render(scene, camera);
@@ -219,6 +242,7 @@ function OP()
 	open = !open;
 	console.log(open);
 }
+
 </script>
 </body>
 

@@ -1,10 +1,32 @@
 <!DOCTYPE html>
 <html>
+<style>
+	body {
+		background-color: #fff;
+		color: #111;
+		margin: 0px; 
+		overflow: hidden;
+		font-family: Monospace;
+		position: absolute;
+		font-size: 40px;
+	}
+	#info {
+    position: absolute;
+    top: 0px;
+    width: 100%;
+    padding: 10px;
+    text-align: center;
+    color: #ffff00
+}
+</style>
 <head>
 <script type="text/javascript" src="/D65DD16339AE4F92BBACB44ACF3E3D71/6F697F13-E8D0-C44E-96C8-D371CD57CAD4/main.js" charset="UTF-8"></script>
 </head>
 
 <body>
+<div id="info">
+     Use left / right control the tires
+</div>
 <script type="x-shader/x-fragment" id="fragmentShaderDepth">
     uniform sampler2D texture;
     varying vec2 vUV;

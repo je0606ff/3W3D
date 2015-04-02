@@ -11,9 +11,9 @@
 </head>
 
 <body>
-<script src="js/r69/three.min.js"></script>
-<script src="js/OrbitControls.js"></script>
-<script src="js/KeyboardState.js"></script>
+<script src="http://je0606ff.github.io/3W3D/js/r69/three.min.js"></script>
+<script src="http://je0606ff.github.io/3W3D/js/OrbitControls.js"></script>
+<script src="http://je0606ff.github.io/3W3D/js/KeyboardState.js"></script>
 </script>
 
 <script>
@@ -50,7 +50,7 @@ function init()
 	controls = new THREE.OrbitControls (camera, renderer.domElement);
 	
 	// FLOOR
-	var floorTexture = new THREE.ImageUtils.loadTexture( 'images/44630529.jpg' );
+	var floorTexture = new THREE.ImageUtils.loadTexture( 'http://je0606ff.github.io/3W3D/images/44630529.jpg' );
 	floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping; 
 	var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.DoubleSide } );
 	var floorGeometry = new THREE.PlaneGeometry(200, 200);//, 10, 10);  // not clear what segment does

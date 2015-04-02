@@ -39,11 +39,11 @@
 	 Press J for Volume DOWN               Press K for Volume UP<br/>
 </div>
 <audio id="soundtrack">
-<source src="sounds/Phantom of the Opera- Lindsey Stirling.mp3" type='audio/mp3'>
+<source src="http://je0606ff.github.io/3W3D/sounds/Phantom of the Opera- Lindsey Stirling.mp3" type='audio/mp3'>
 </audio>
-<script src="js/r69/three.min.js"></script>
-<script src="js/OrbitControls.js"></script>
-<script src="js/KeyboardState.js"></script>
+<script src="http://je0606ff.github.io/3W3D/js/r69/three.min.js"></script>
+<script src="http://je0606ff.github.io/3W3D/js/OrbitControls.js"></script>
+<script src="http://je0606ff.github.io/3W3D/js/KeyboardState.js"></script>
 
 <script>
 
@@ -72,7 +72,7 @@ function init()
     cameraBack.lookAt(new THREE.Vector3(0, 0, 0));
 
     THREE.ImageUtils.crossOrigin = '';
-    var texture = THREE.ImageUtils.loadTexture('images/GalaxyTexture.png');
+    var texture = THREE.ImageUtils.loadTexture('http://je0606ff.github.io/3W3D/images/GalaxyTexture.png');
 
     var back = new THREE.Mesh(new THREE.PlaneGeometry(20, 20),
     new THREE.MeshBasicMaterial({
@@ -112,21 +112,21 @@ function init()
 	
 	//Sun 695500KM
 	var SunGeom =  new THREE.SphereGeometry( 50, 32, 16 );
-	var SunTexture = new THREE.ImageUtils.loadTexture( 'images/SunTexture.png' );
+	var SunTexture = new THREE.ImageUtils.loadTexture( 'http://je0606ff.github.io/3W3D/images/SunTexture.png' );
 	var SunMaterial = new THREE.MeshBasicMaterial( { map : SunTexture, color: 0xffffff, wireframe: false, transparent: true } ); 
 	Sun = new THREE.Mesh( SunGeom.clone(), SunMaterial );
 	scene.add( Sun );
 	
 	//Earth 6378
 	var EarthGeom =  new THREE.SphereGeometry( 10, 32, 16 );
-	var EarthTexture = new THREE.ImageUtils.loadTexture( 'images/EarthTexture.png' );
+	var EarthTexture = new THREE.ImageUtils.loadTexture( 'http://je0606ff.github.io/3W3D/images/EarthTexture.png' );
 	var EarthMaterial = new THREE.MeshLambertMaterial( { map : EarthTexture, color: 0xffffff, wireframe: false, transparent: true } ); 
 	Earth = new THREE.Mesh( EarthGeom, EarthMaterial );
 	Sun.add( Earth );
 	
 	//Moon 1738
 	var MoonGeom =  new THREE.SphereGeometry( 5, 32, 16 );
-	var MoonTexture = new THREE.ImageUtils.loadTexture( 'images/MoonTexture.png' );
+	var MoonTexture = new THREE.ImageUtils.loadTexture( 'http://je0606ff.github.io/3W3D/images/MoonTexture.png' );
 	var MoonMaterial = new THREE.MeshLambertMaterial( { map : MoonTexture, color: 0xffffff, wireframe: false, transparent: true } ); 
 	Moon = new THREE.Mesh( MoonGeom.clone(), MoonMaterial );
 	Earth.add( Moon );

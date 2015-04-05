@@ -76,7 +76,7 @@ var controls, keyboard = new KeyboardState();
 var wheel;
 // state variables of Segway
 var pos = new THREE.Vector3(0,0,0), angle = 0;
-var speed = 5, rotspeed = 0;
+var speed = 0, rotspeed = 0;
 
 var speedR = 0, speedL = 0;
 var spotLight;
@@ -341,16 +341,24 @@ function update()
 	{
 		speedL += 0.5; 
 		speedR += 0.5;
-		tire_left.rotation.x += 1.5/180*3.1416;
+		tire_left.rotation.x += 1/180*3.1416;
 		//tire_left.rotation.x += 0.5/180*3.1416;
 	}
 	if ( keyboard.pressed("down") )
 	{
 		speedL -= 0.5;
 		speedR -= 0.5;
-		tire_left.rotation.x -= 1.5/180*3.1416;
+		tire_left.rotation.x -= 1/180*3.1416;
 		//tire_right.rotation.x += 0.5/180*3.1416;
 	}
+	
+	if ( speed > 1.5)
+		tire_left.rotation.x += 1/180*3.1416;
+	if ( speed < -1.5)
+		tire_left.rotation.x -= 1/180*3.1416;
+	if ( speed < 1.5 && speed >-1.5)
+		tire_left.rotation.x += 0;
+	console.log(speed);
 	
 	// viscous drag
 	speedL *= 0.95;

@@ -16,7 +16,7 @@
 		width: 100%;
 		padding: 10px;
 		text-align: center;
-		color: #ffff00
+		color: #ff0000
 	}
 </style>
 <head>
@@ -25,7 +25,7 @@
 
 <body>
 <div id="info">
-     Use left / right control the tires
+     Use up / down / left / right control the tires
 </div>
 <script type="x-shader/x-fragment" id="fragmentShaderDepth">
     uniform sampler2D texture;
@@ -99,12 +99,20 @@ function init()
 	
 	//texture
 	THREE.ImageUtils.crossOrigin = '';
-    var tire_side_texture = THREE.ImageUtils.loadTexture('http://je0606ff.github.io/3W3D/images/tire_side.png');
-	var tire_side_texture_bump = THREE.ImageUtils.loadTexture('http://je0606ff.github.io/3W3D/images/tire_side_bump.png');
-    var tire_wheel_texture = THREE.ImageUtils.loadTexture('http://je0606ff.github.io/3W3D/images/tire_wheel.jpg');
-	var tire_wheel_texture_bump = THREE.ImageUtils.loadTexture('http://je0606ff.github.io/3W3D/images/tire_wheel_bump.jpg');
+    //var tire_side_texture = THREE.ImageUtils.loadTexture('http://je0606ff.github.io/3W3D/images/tire_side.png');
+	//var tire_side_texture_bump = THREE.ImageUtils.loadTexture('http://je0606ff.github.io/3W3D/images/tire_side_bump.png');
+    //var tire_wheel_texture = THREE.ImageUtils.loadTexture('http://je0606ff.github.io/3W3D/images/tire_wheel.jpg');
+	//var tire_wheel_texture_bump = THREE.ImageUtils.loadTexture('http://je0606ff.github.io/3W3D/images/tire_wheel_bump.jpg');
+	//var floor = THREE.ImageUtils.loadTexture('http://je0606ff.github.io/3W3D/images/FloorTexture.jpg');
+	//var floor_bump = THREE.ImageUtils.loadTexture('http://je0606ff.github.io/3W3D/images/FloorTexture_bump.jpg');
+	
+	var tire_side_texture = THREE.ImageUtils.loadTexture('images/tire_side.png');
+	var tire_side_texture_bump = THREE.ImageUtils.loadTexture('/images/tire_side_bump.png');
+    var tire_wheel_texture = THREE.ImageUtils.loadTexture('images/tire_wheel.jpg');
+	var tire_wheel_texture_bump = THREE.ImageUtils.loadTexture('images/tire_wheel_bump.jpg');
 	var floor = THREE.ImageUtils.loadTexture('http://je0606ff.github.io/3W3D/images/FloorTexture.jpg');
 	var floor_bump = THREE.ImageUtils.loadTexture('http://je0606ff.github.io/3W3D/images/FloorTexture_bump.jpg');
+	
 	//Object3D
     tire_left = new THREE.Object3D();
 	tire_right = new THREE.Object3D();
@@ -121,13 +129,13 @@ function init()
     });
     var tire_side_left_1 = new THREE.Mesh(tire_side_geometry, tire_side_material);
 	tire_wheel_texture.wrapS = tire_wheel_texture.wrapT = THREE.RepeatWrapping; 
-	tire_wheel_texture.repeat.set(1,1);
+	tire_wheel_texture.repeat.set(4,1);
 	tire_side_left_1.castShadow = true;
 	
-	var tire_side_left_2 = new THREE.Mesh(tire_side_geometry, tire_side_material);
+	/*var tire_side_left_2 = new THREE.Mesh(tire_side_geometry, tire_side_material);
 	tire_wheel_texture.wrapS = tire_wheel_texture.wrapT = THREE.RepeatWrapping; 
 	tire_wheel_texture.repeat.set(1,1);
-	tire_side_left_2.castShadow = true;
+	tire_side_left_2.castShadow = true;*/
 	
 	//tire_wheel
     var tire_wheel_1 = new THREE.Mesh(new THREE.CylinderGeometry(20, 20, 10, 20, 1, true), // only side
@@ -140,7 +148,7 @@ function init()
     }));
 	tire_wheel_1.castShadow = true;
 	
-	var tire_wheel_2 = new THREE.Mesh(new THREE.CylinderGeometry(20, 20, 10, 20, 1, true), // only side
+	/*var tire_wheel_2 = new THREE.Mesh(new THREE.CylinderGeometry(20, 20, 10, 20, 1, true), // only side
     new THREE.MeshBasicMaterial({
         map: tire_wheel_texture,
 		bumpMap: tire_wheel_texture_bump,
@@ -148,31 +156,31 @@ function init()
 		transparent: true,
         side: THREE.DoubleSide
     }));
-	tire_wheel_2.castShadow = true;
+	tire_wheel_2.castShadow = true;*/
 	
 	//set left tire
     tire_wheel_1.order = 'ZYX';
     tire_wheel_1.rotation.z = Math.PI/2;
 	
-	tire_wheel_2.order = 'ZYX';
-    tire_wheel_2.rotation.z = Math.PI/2;
+	/*tire_wheel_2.order = 'ZYX';
+    tire_wheel_2.rotation.z = Math.PI/2;*/
 	
 	tire_side_left_1.order = 'ZYX';
 	tire_side_left_1.rotation.y = Math.PI / 2;
     tire_side_left_1.position.set(5, 0, 0);
 	
-	tire_side_left_2.order = 'ZYX';
+	/*tire_side_left_2.order = 'ZYX';
 	tire_side_left_2.rotation.y = Math.PI / 2;
-    tire_side_left_2.position.set(5, 0, 0);
+    tire_side_left_2.position.set(5, 0, 0);*/
 	
 	//set rigth tire
     tire_side_right_1 = tire_side_left_1.clone();
 	tire_side_right_1.rotation.y = -Math.PI / 2;
     tire_side_right_1.position.set(-5, 0, 0);
 	
-	tire_side_right_2 = tire_side_left_2.clone();
+	/*tire_side_right_2 = tire_side_left_2.clone();
 	tire_side_right_2.rotation.y = -Math.PI / 2;
-    tire_side_right_2.position.set(-5, 0, 0);
+    tire_side_right_2.position.set(-5, 0, 0);*/
 	
 	//important 
 	var uniforms = {
@@ -193,30 +201,31 @@ function init()
         vertexShader: vertexShader,
         fragmentShader: fragmentShader
     });
-	tire_side_left_2.customDepthMaterial = new THREE.ShaderMaterial({
+	/*tire_side_left_2.customDepthMaterial = new THREE.ShaderMaterial({
         uniforms: uniforms,
         vertexShader: vertexShader,
         fragmentShader: fragmentShader
-    });
-	tire_side_right_2.customDepthMaterial = new THREE.ShaderMaterial({
+    });*/
+	/*tire_side_right_2.customDepthMaterial = new THREE.ShaderMaterial({
         uniforms: uniforms,
         vertexShader: vertexShader,
         fragmentShader: fragmentShader
-    });
+    });*/
 	
 	//set both of tire
 	tire_left.add(tire_wheel_1);
 	tire_left.add (tire_side_left_1);
 	tire_left.add(tire_side_right_1);
 	
-	tire_right.add(tire_wheel_2);
-	tire_right.add(tire_side_left_2);
-	tire_right.add(tire_side_right_2);
+	//tire_right.add(tire_wheel_2);
+	//tire_right.add(tire_side_left_2);
+	//tire_right.add(tire_side_right_2);
 	
 	wheel.add(tire_left);
-	wheel.add(tire_right);
-	tire_left.position.set(20,20,0);
-	tire_right.position.set(-20,20,0);
+	//wheel.add(tire_right);
+	//tire_left.position.set(20,20,0);
+	tire_left.position.set(0,20,0);
+	//tire_right.position.set(-20,20,0);
 	scene.add(wheel);
 	
 	
@@ -248,7 +257,7 @@ function init()
 	scene.add(spotball);*/
 	
 	//ground
-	var ground_material = new THREE.MeshBasicMaterial({
+	var ground_material = new THREE.MeshLambertMaterial({
 		map: floor,
         color: 0xf6c4df,
         bumpMap: floor_bump,
@@ -256,16 +265,18 @@ function init()
         side: THREE.DoubleSide
 	});
 	var ground = new THREE.Mesh(
-    new THREE.PlaneGeometry(100, 100, 130, 130),
+    new THREE.PlaneGeometry(100, 100, 30, 30),
     ground_material);
     ground.rotation.x = -Math.PI / 2;
+	ground.receiveShadow = true;
     scene.add(ground);
-
-    ground.receiveShadow = true;
+	
+	var amblight = new THREE.AmbientLight(0x000000); // soft white light
+    scene.add(amblight);
 	
 	renderer = new THREE.WebGLRenderer();
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setClearColor(0x888888);
+    renderer.setClearColor(0x000000);
     renderer.shadowMapEnabled = true;
 	renderer.shadowMapCullFrontFaces = false;
     renderer.shadowMapType = THREE.PCFShadowMap;
@@ -321,15 +332,31 @@ function update()
 	keyboard.update();         
 	if ( keyboard.pressed("left") ) 
 	{
-		speedL += 0.5; 
-		tire_right.rotation.x += 1/180*3.1416;
-		tire_left.rotation.x += 0.5/180*3.1416;
+		//speedL += 0.5; 
+		angle += 0.01;
+		//tire_left.rotation.x += 1/180*3.1416;
+		//tire_left.rotation.x += 0.5/180*3.1416;
 	}
 	if ( keyboard.pressed("right") )
 	{
+		//speedR += 0.5;
+		angle -= 0.01;
+		//tire_left.rotation.x += 1/180*3.1416;
+		//tire_right.rotation.x += 0.5/180*3.1416;
+	}
+	if ( keyboard.pressed("up") ) 
+	{
+		speedL += 0.5; 
 		speedR += 0.5;
-		tire_left.rotation.x += 1/180*3.1416;
-		tire_right.rotation.x += 0.5/180*3.1416;
+		tire_left.rotation.x += 1.5/180*3.1416;
+		//tire_left.rotation.x += 0.5/180*3.1416;
+	}
+	if ( keyboard.pressed("down") )
+	{
+		speedL -= 0.5;
+		speedR -= 0.5;
+		tire_left.rotation.x -= 1.5/180*3.1416;
+		//tire_right.rotation.x += 0.5/180*3.1416;
 	}
 	
 	// viscous drag
@@ -339,8 +366,8 @@ function update()
 	//console.log ("L: " + speedL + "; R: " + speedR);
 	//console.log (speed);
 	// no backtrack yet
-	speedL = myclamp (speedL, 0, 20);
-	speedR = myclamp (speedR, 0, 20);
+	speedL = myclamp (speedL, -20, 20);
+	speedR = myclamp (speedR, -20, 20);
 	
 	speed = (speedL+speedR)/2;
 	rotspeed = (speedL - speedR)/10;

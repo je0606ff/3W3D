@@ -422,7 +422,7 @@ function init()
 	controls = new THREE.OrbitControls (camera, renderer.domElement);
 	
 	var jsonLoader = new THREE.JSONLoader();
-    jsonLoader.load("models/android.json", addModelToScene);
+    jsonLoader.load("http://je0606ff.github.io/3W3D/models/android.json", addModelToScene);
 	
 	window.addEventListener ('resize', onWindowResize, false);
 }

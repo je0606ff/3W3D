@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html>
+<style>
+	body {
+		background-color: #fff;
+		color: #111;
+		margin: 0px; 
+		overflow: hidden;
+		font-family: Monospace;
+		position: absolute;
+		font-size: 24px;
+	}
+	#info {
+		position: absolute;
+		top: 20px;
+		font-size: 40px;
+		width: 100%;
+		text-align: center;
+		color: #00ff00;
+	}
+	#toggle {
+		position: absolute;
+		top : 80px;
+		width: 100%;
+		text-align: center;
+		color: #ff0000;
+	}
+	#speed {
+		position: absolute;
+		bottom: 100px;
+		width: 100%;
+		color: #ffffff;
+		text-align: center;
+	}
+</style>
+<head>
+<script type="text/javascript" src="/D65DD16339AE4F92BBACB44ACF3E3D71/6F697F13-E8D0-C44E-96C8-D371CD57CAD4/main.js" charset="UTF-8"></script>
+</head>
+
+<body>
+<div id="info">Press Arrow key
+</div>
+<div id="toggle">
+	<a href="javascript:bool();">third person / global views</a>
+</div>
+	
+<div id="speed"></div>
+<script type="x-shader/x-fragment" id="fragmentShaderDepth">
+    uniform sampler2D texture;
+    varying vec2 vUV;
+
+    vec4 pack_depth(const in float depth) {
+
+        const vec4 bit_shift = vec4(256.0 * 256.0 * 256.0, 256.0 * 256.0, 256.0, 1.0);
+        const vec4 bit_mask = vec4(0.0, 1.0 / 256.0, 1.0 / 256.0, 1.0 / 256.0);
+        vec4 res = fract(depth * bit_shift);
+        res -= res.xxyz * bit_mask;
+        return res;
+
+    }
+
+    void main() {
+
+        vec4 pixel = texture2D(texture, vUV);
+
+        if (pixel.a < 0.5) discard;
+
+        gl_FragData[0] = pack_depth(gl_FragCoord.z);
+
+    }
+</script>
+<script type="x-shader/x-vertex" id="vertexShaderDepth">
+    varying vec2 vUV;
+
+    void main() {
+
+        vUV = 1.0 * uv;
+
+        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+
+        gl_Position = projectionMatrix * mvPosition;
+
+    }
+</script>
+<script src="http://je0606ff.github.io/3W3D/js/r69/three.min.js"></script>
+<script src="http://je0606ff.github.io/3W3D/js/OrbitControls.js"></script>
+<script src="http://je0606ff.github.io/3W3D/js/KeyboardState.js"></script>
+
+<script>
+var clock = new THREE.Clock();
+var scene, renderer, camera;
+var controls, keyboard = new KeyboardState();
+var spotLight;
+var turn = false;
+
+var pa = new THREE.Vector3(5, 4, 0);
+var pb = new THREE.Vector3(-5, 4, 0);
+var pc = new THREE.Vector3(0,0,0);
+var tire_left, tire_right, footboard, ball;
+var sa = 0;
+var sb = 0;
+var k = 0;
+var speedInfo;
+var angle;
+
+var aa,bb;
+var xangle = 0;
+var zangle = 0;
+var sceneHUD, cameraHUD;
+var barA, barB;
+
+init();
+animate();
+
+function update(dt) {
+    var center = new THREE.Vector3();
+    var tmp = new THREE.Vector3();
+    var l = tmp.subVectors(pa, pb).length();
+
+    k = l * sa / (sb - sa);
+    var omega = (sb - sa) / l;
+	
+    if (Math.abs(sa-sb) < 1e-5) {
+    tmp.subVectors(pa, pb).normalize().cross(new THREE.Vector3(0, 1, 0)).multiplyScalar(sa * dt);
+        pa.add(tmp);
+        pb.add(tmp);
+        tire_left.position.copy(pa);
+        tire_right.position.copy(pb);
+        return;
+    }
+
+    tmp.subVectors(pa, pb).normalize().multiplyScalar(k);
+    center.copy(tmp.add(pa));
+
+    tmp.subVectors(pa, center)
+        .applyAxisAngle(new THREE.Vector3(0, 1, 0), omega * dt)
+        .add(center);
+    pa.copy(tmp);
+
+    tmp.subVectors(pb, center)
+        .applyAxisAngle(new THREE.Vector3(0, 1, 0), omega * dt)
+        .add(center);
+    pb.copy(tmp);
+
+    tire_left.position.copy(pa);
+    tire_right.position.copy(pb);
+}
+
+function initHUD() {
+    sceneHUD = new THREE.Scene();
+    cameraHUD = new THREE.OrthographicCamera(-10, 10, 10, -10, 1, 100);
+    cameraHUD.position.z = 5;
+    cameraHUD.lookAt(new THREE.Vector3(0, 0, 0));
+
+    barA = new THREE.Object3D();
+    powerA = new THREE.Mesh(new THREE.PlaneGeometry(1, 4),
+    new THREE.MeshBasicMaterial({
+        color: 0xff1233,
+        opacity: 0.5,
+        side: THREE.DoubleSide,
+        transparent: true
+    }));
+    powerA.position.set(-2, 2, 0);
+    barA.add(powerA);
+    sceneHUD.add(barA);
+
+    barB = new THREE.Object3D();
+    powerB = new THREE.Mesh(new THREE.PlaneGeometry(1, 4),
+    new THREE.MeshBasicMaterial({
+        color: 0x2212ff,
+        opacity: 0.5,
+        side: THREE.DoubleSide,
+        transparent: true
+    }));
+    powerB.position.set(2, 2, 0);
+    barB.add(powerB);
+    sceneHUD.add(barB);
+}
+
+function init()
+{
+	initHUD();
+	var width = window.innerWidth;
+	var height = window.innerHeight;
+	
+	scene = new THREE.Scene();
+    speedInfo = window.document.getElementById('speed');
+	
+    camera = new THREE.PerspectiveCamera (45, width/height, 1, 10000);
+	scene.add (camera);
+
+	//texture
+	THREE.ImageUtils.crossOrigin = '';
+    var tire_side_texture = THREE.ImageUtils.loadTexture('http://je0606ff.github.io/3W3D/images/tire_side.png');
+	var tire_side_texture_bump = THREE.ImageUtils.loadTexture('http://je0606ff.github.io/3W3D/images/tire_side_bump.png');
+    var tire_wheel_texture = THREE.ImageUtils.loadTexture('http://je0606ff.github.io/3W3D/images/tire_wheel.jpg');
+	var tire_wheel_texture_bump = THREE.ImageUtils.loadTexture('http://je0606ff.github.io/3W3D/images/tire_wheel_bump.jpg');
+	var floor = THREE.ImageUtils.loadTexture('http://je0606ff.github.io/3W3D/images/FloorTexture.jpg');
+	var floor_bump = THREE.ImageUtils.loadTexture('http://je0606ff.github.io/3W3D/images/FloorTexture_bump.jpg');
+	
+	//Object3D
+    tire_left = new THREE.Object3D();
+	tire_right = new THREE.Object3D();
+	footboard = new THREE.Object3D();
+	ball = new THREE.Object3D();
+	model = new THREE.Object3D();
+	
+	//scene.add(model);
+	
+	//tire_side
+    tire_side_geometry = new THREE.CircleGeometry(4, 20);
+    tire_side_material = new THREE.MeshBasicMaterial({
+        map: tire_side_texture,
+		bumpMap: tire_side_texture_bump,
+        bumpScale: 0.8,
+        transparent: true,  // for cut-out texture
+        side: THREE.DoubleSide
+    });
+    var tire_side_left_1 = new THREE.Mesh(tire_side_geometry, tire_side_material);
+	tire_wheel_texture.wrapS = tire_wheel_texture.wrapT = THREE.RepeatWrapping; 
+	tire_wheel_texture.repeat.set(4,1);
+	tire_side_left_1.receiveShadow = true;
+	tire_side_left_1.castShadow = true;
+	
+	var tire_side_left_2 = new THREE.Mesh(tire_side_geometry, tire_side_material);
+	tire_wheel_texture.wrapS = tire_wheel_texture.wrapT = THREE.RepeatWrapping; 
+	tire_wheel_texture.repeat.set(4,1);
+	tire_side_left_2.receiveShadow = true;
+	tire_side_left_2.castShadow = true;
+	
+	//tire_wheel
+    var tire_wheel_1 = new THREE.Mesh(new THREE.CylinderGeometry(4, 4, 2, 20, 1, true), // only side
+    new THREE.MeshBasicMaterial({
+        map: tire_wheel_texture,
+		bumpMap: tire_wheel_texture_bump,
+        bumpScale: 0.8,
+		transparent: true,
+        side: THREE.DoubleSide
+    }));
+	tire_wheel_1.receiveShadow = true;
+	tire_wheel_1.castShadow = true;
+	
+	var tire_wheel_2 = new THREE.Mesh(new THREE.CylinderGeometry(4, 4, 2, 20, 1, true), // only side
+    new THREE.MeshBasicMaterial({
+        map: tire_wheel_texture,
+		bumpMap: tire_wheel_texture_bump,
+        bumpScale: 0.8,
+		transparent: true,
+        side: THREE.DoubleSide
+    }));
+	tire_wheel_2.receiveShadow = true;
+	tire_wheel_2.castShadow = true;
+	
+	//set left tire
+    tire_wheel_1.order = 'ZYX';
+    tire_wheel_1.rotation.z = Math.PI/2;
+	
+	tire_wheel_2.order = 'ZYX';
+    tire_wheel_2.rotation.z = Math.PI/2;
+	
+	tire_side_left_1.order = 'ZYX';
+	tire_side_left_1.rotation.y = Math.PI / 2;
+    tire_side_left_1.position.set(1, 0, 0);
+	
+	tire_side_left_2.order = 'ZYX';
+	tire_side_left_2.rotation.y = Math.PI / 2;
+    tire_side_left_2.position.set(1, 0, 0);
+	
+	//set rigth tire
+    tire_side_right_1 = tire_side_left_1.clone();
+	tire_side_right_1.rotation.y = -Math.PI / 2;
+    tire_side_right_1.position.set(-1, 0, 0);
+	
+	tire_side_right_2 = tire_side_left_2.clone();
+	tire_side_right_2.rotation.y = -Math.PI / 2;
+    tire_side_right_2.position.set(-1, 0, 0);
+	
+	//important 
+	var uniforms = {
+        texture: {
+            type: "t",
+            value: tire_side_texture
+        }
+    };
+    var vertexShader = document.getElementById('vertexShaderDepth').textContent;
+    var fragmentShader = document.getElementById('fragmentShaderDepth').textContent;
+    tire_side_left_1.customDepthMaterial = new THREE.ShaderMaterial({
+        uniforms: uniforms,
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader
+    });
+	tire_side_right_1.customDepthMaterial = new THREE.ShaderMaterial({
+        uniforms: uniforms,
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader
+    });
+	tire_side_left_2.customDepthMaterial = new THREE.ShaderMaterial({
+        uniforms: uniforms,
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader
+    });
+	tire_side_right_2.customDepthMaterial = new THREE.ShaderMaterial({
+        uniforms: uniforms,
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader
+    });
+	
+	//set both of tire
+	tire_left.add(tire_wheel_1);
+	tire_left.add(tire_side_left_1);
+	tire_left.add(tire_side_right_1);
+	tire_left.position.copy(pa);
+	
+	tire_right.add(tire_wheel_2);
+	tire_right.add(tire_side_left_2);
+	tire_right.add(tire_side_right_2);
+	tire_right.position.copy(pb);
+
+	tire_left.order = 'ZYX';
+	tire_left.rotation.y = Math.PI / 2;
+	
+	tire_right.order = 'ZYX';
+	tire_right.rotation.y = Math.PI / 2;
+	
+	scene.add(tire_left);
+	scene.add(tire_right);
+	
+	footboard = new THREE.Mesh(new THREE.BoxGeometry(8, 1, 3),
+    new THREE.MeshBasicMaterial({
+        color: 0x888888,
+        transparent: true
+    }));
+	footboard.receiveShadow = true;
+	footboard.castShadow = true;
+	
+	foothold = new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.5,15,20),
+	new THREE.MeshBasicMaterial({
+        color: 0xaaaaaa,
+        transparent: true
+	}));
+	foothold.receiveShadow = true;
+	foothold.castShadow = true;
+	
+	foothold.translateOnAxis(new THREE.Vector3(0,1,0), 7);
+	
+	handle = new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.5,8,20),
+	new THREE.MeshBasicMaterial({
+        color: 0x555555,
+        transparent: true
+	}));
+	handle.receiveShadow = true;
+	handle.castShadow = true;
+	
+	handle.rotation.z = Math.PI / 2;
+	handle.translateOnAxis(new THREE.Vector3(1,0,0), 15);
+	
+	ball = new THREE.Mesh(new THREE.SphereGeometry(1,30),
+	new THREE.MeshBasicMaterial({
+		color: 0xaaaaaa,
+        transparent: true
+	}));
+	ball.receiveShadow = true;
+	ball.castShadow = true;
+	
+	ball.translateOnAxis(new THREE.Vector3(0,0,1), -1);
+	
+	ball.add(foothold);
+	ball.add(handle);
+
+	footboard.add(ball);
+	footboard.add(model);
+    scene.add(footboard);
+	
+	//////////////////////////////////////////////////////////////////
+		
+	spotLight = new THREE.SpotLight(0xffffff, 1.3);
+    spotLight.position.set(0, 40, 0);
+    spotLight.angle = Math.PI / 3;
+
+    spotLight.castShadow = true;
+
+    spotLight.shadowMapWidth = 1024;
+    spotLight.shadowMapHeight = 1024;
+
+    spotLight.shadowCameraNear = 5;
+    spotLight.shadowCameraFar = 4000;
+    spotLight.shadowCameraFov = spotLight.angle / Math.PI * 180;
+
+    spotLight.exponent = 10;
+    spotLight.target = footboard;
+	
+    scene.add(spotLight);
+	
+	var ground_material = new THREE.MeshLambertMaterial({
+		map: floor,
+        color: 0xf6c4df,
+        bumpMap: floor_bump,
+        bumpScale: 0.8,
+        side: THREE.DoubleSide
+	});
+	var ground = new THREE.Mesh(
+    new THREE.PlaneGeometry(200, 200, 50, 50),
+    ground_material);
+    ground.rotation.x = Math.PI / 2;
+	
+	ground.receiveShadow = true;
+    scene.add(ground);
+	
+	var amblight = new THREE.AmbientLight(0x888888);
+    scene.add(amblight);
+	
+	renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x888888);
+    renderer.shadowMapEnabled = true;
+	renderer.shadowMapCullFrontFaces = false;
+    renderer.shadowMapType = THREE.PCFShadowMap;
+	renderer.autoClear = false;
+	
+	document.body.appendChild (renderer.domElement);
+	
+	controls = new THREE.OrbitControls (camera, renderer.domElement);
+	
+	var jsonLoader = new THREE.JSONLoader();
+    jsonLoader.load("models/android.json", addModelToScene);
+	
+	window.addEventListener ('resize', onWindowResize, false);
+}
+
+function addModelToScene(geometry, materials) {
+    var material = new THREE.MeshFaceMaterial(materials);
+    jsonModel = new THREE.Mesh(geometry, material);
+	jsonModel.castShadow = true;
+	jsonModel.receiveShadow = true;
+    //jsonModel.scale.set(0.5,0.5,0.5);
+    jsonModel.rotation.y = Math.PI; // default: back face +z
+    model.add(jsonModel);
+}
+
+
+function onWindowResize ()
+{
+	camera.aspect = window.innerWidth / window.innerHeight;
+	camera.updateProjectionMatrix();
+	renderer.setSize (window.innerWidth, window.innerHeight);
+}
+
+function myclamp(x, lo, hi)
+{
+    return (x < lo) ? lo : ((x > hi) ? hi : x);
+}
+
+function bool()
+{
+	turn = !turn;
+}
+
+function cameralook()
+{
+	if (!turn){
+		var tmp = new THREE.Vector3();
+		tmp.copy(pa);
+		tmp.add(pb).multiplyScalar(0.5);
+		
+		var relativeCameraOffset = new THREE.Vector3 (0,150,1);
+
+		var cameraOffset = relativeCameraOffset.applyMatrix4( footboard.matrixWorld );
+
+		camera.position.x = cameraOffset.x;
+		camera.position.y = cameraOffset.y;
+		camera.position.z = cameraOffset.z;
+		
+		camera.lookAt(tmp);
+	}
+	else{
+		var relativeCameraOffset = new THREE.Vector3 (0,40,50);
+
+		var cameraOffset = relativeCameraOffset.applyMatrix4( footboard.matrixWorld );
+
+		camera.position.x = cameraOffset.x;
+		camera.position.y = cameraOffset.y;
+		camera.position.z = cameraOffset.z;
+		camera.lookAt(footboard.position);
+	}
+}
+
+function keyboardupdate()
+{
+	if (keyboard.pressed("up")) { // move forward
+        xangle -= 0.01;
+		sa += 1;
+		sb += 1;
+    }
+    if (keyboard.pressed("down")) { // move backward
+        xangle += 0.01;
+		sa -= 1;
+		sb -= 1;
+    }
+    if (keyboard.pressed("left")) { // left turn
+        zangle += 0.005;
+		sb += 1;
+    }
+    if (keyboard.pressed("right")) { // right turn
+        zangle -= 0.005;
+		sa += 1;
+    }
+    if (keyboard.pressed("space")) { // pause
+        zangle = xangle = 0;
+		sa = 0;
+		sb = 0;
+    }
+}
+
+function bar()
+{
+	 var forward = -xangle * 10;
+    var small = forward * (1 - Math.abs(zangle) / 0.1 * 1.8);
+    if (zangle > 0) {
+        aa = small;
+        bb = forward;
+    } else {
+        aa = forward;
+        bb = small;
+    }
+
+    barA.scale.copy(new THREE.Vector3(1, Math.abs(aa), 1));
+    barB.scale.copy(new THREE.Vector3(1, Math.abs(bb), 1));
+
+    var xxa, xxb;
+
+    if (aa < 0) {
+        xxa = Math.PI;
+        barA.children[0].material.color = new THREE.Color(0xffffff);
+    } else {
+        xxa = 0;
+        barA.children[0].material.color = new THREE.Color(0xff0000);
+    }
+    barA.rotation.x = xxa;
+
+    if (bb < 0) {
+        xxb = Math.PI;
+        barB.children[0].material.color = new THREE.Color(0xffffff);
+    } else {
+        xxb = 0;
+        barB.children[0].material.color = new THREE.Color(0x0000ff);
+    }
+    barB.rotation.x = xxb;
+}
+
+function animate()
+{
+    keyboard.update();
+	controls.update();
+	
+	dt = 0.01;
+    update(0.01);
+	
+	var tmp = new THREE.Vector3();
+    tmp.copy(pa);
+    tmp.add(pb).multiplyScalar(0.5);
+    footboard.position.copy(tmp);
+    tmp.copy(pa);
+    tmp.sub(pb);
+    angle = Math.atan2(tmp.z, tmp.x) - Math.PI / 2;
+	
+	footboard.rotation.y = -angle + Math.PI / 2;
+	tire_left.rotation.order  = 'ZYX';
+	tire_right.rotation.order  = 'ZYX';
+	
+	tire_left.rotation.y = -angle + Math.PI / 2;
+	tire_right.rotation.y = -angle + Math.PI / 2;
+	
+	tire_left.rotation.x -= sa*0.01;
+	tire_right.rotation.x -= sb*0.01;
+	
+	sa = myclamp(sa, -20, 20);
+    sb = myclamp(sb, -20, 20);
+	
+	sa *= 0.98;
+	sb *= 0.98;
+	
+	xangle *= 0.98;
+	zangle *= 0.98;
+	
+	xangle = myclamp(xangle, -0.2, 0.1);
+    zangle = myclamp(zangle, -0.1, 0.1);
+	
+    //var text = 'sa: ' + sa.toFixed(2) + ', ' + 'sb: ' + sb.toFixed(2)
+    //+ '<br/>k: ' + k.toFixed(2);
+    	
+    //speedInfo.innerHTML = text;
+
+    ball.rotation.x = xangle;
+    ball.rotation.z = zangle;
+	model.rotation.x = xangle;
+	model.rotation.z = zangle;
+	
+    requestAnimationFrame(animate);
+	cameralook();
+	keyboardupdate();
+	bar();
+    render();
+}
+
+function render() {
+    renderer.clear();
+    renderer.render(scene, camera);
+    renderer.render(sceneHUD, cameraHUD); // drawn last: to be blended with others
+}
+
+window.focus();
+</script>
+</body>
+
+</html>

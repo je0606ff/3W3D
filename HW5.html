@@ -13,13 +13,22 @@
 		padding-bottom:60%;
 	}
 	
+	#info {
+		position: absolute;
+		top: 20px;
+		font-size: 40px;
+		width: 100%;
+		text-align: center;
+		color: #00ffff;
+	}
+	
 	.fl {
 		float:left;
 		margin:20px;
 	}
 	
 	.flc {
-		float:right;
+		float:left;
 		margin:30px;
 		width:10%;
 	}
@@ -43,11 +52,11 @@
 		<canvas id="cnvs"> </canvas>
 	</div></div>
 	
+	<div id="info"><a href="javascript:clearlog();">clear log</a></div>
 	<img src="http://je0606ff.github.io/3W3D/images/00.jpg" class="flc" onclick="javascript:tst(1);" />
 	<img src="http://je0606ff.github.io/3W3D/images/01.jpg" class="flc" onclick="javascript:tst(2);" />
 	<img src="http://je0606ff.github.io/3W3D/images/02.jpg" class="flc" onclick="javascript:tst(3);" />
 	<img src="http://je0606ff.github.io/3W3D/images/03.jpg" class="flc" onclick="javascript:tst(4);" />
-	
 	<div style="clear:both"></div>
 	
 </hr>
@@ -68,6 +77,46 @@ var pickables_left = [];
 var pickables_right = [];
 var mouse = new THREE.Vector2();
 var raycaster;
+var right_p = 0, left_p = 0, mid_p = 0;
+var tex_l, tex_m, tex_r;
+var log = false;
+
+function clearlog()
+{
+	log =true;
+	localStorage.setItem ("right_p", right_p = 0);
+	localStorage.setItem ("left_p", left_p = 0);
+	localStorage.setItem ("mid_p", mid_p = 0);
+
+	log = false;
+	location.reload();
+}
+
+function mesh_material() {
+
+	for ( var i = 1; i < 5 ; i++){
+		if ( left_p == i)
+			var l = i;
+		if ( right_p == i)
+			var r = i;
+		if ( mid_p == i)
+			var m = i;
+	}
+	//var tex_l, tex_m, tex_r;
+	if ( l == 1) tex_l = tex1;
+	if ( l == 2) tex_l = tex2;
+	if ( l == 3) tex_l = tex3;
+	if ( l == 4) tex_l = tex4;
+	if ( r == 1) tex_r = tex1;
+	if ( r == 2) tex_r = tex2;
+	if ( r == 3) tex_r = tex3;
+	if ( r == 4) tex_r = tex4;
+	if ( m == 1) tex_m = tex1;
+	if ( m == 2) tex_m = tex2;
+	if ( m == 3) tex_m = tex3;
+	if ( m == 4) tex_m = tex4;
+	
+}
 
 function pick(which) {
 
@@ -96,21 +145,21 @@ function tst(which) {
 				map: tex1,
 				side: THREE.DoubleSide
 			});
-			//localStorage.setItem ("right_p", right_p = 1);
+			localStorage.setItem (right_p, right_p = 1);
 		}
 		if (leftA){
 			left_mesh.material = new THREE.MeshLambertMaterial({
 				map: tex1,
 				side: THREE.DoubleSide
 			});
-			//localStorage.setItem ("left_p", left_p = 1);
+			localStorage.setItem ("left_p", left_p = 1);
 		}
 		if(midA){
 			mid_mesh.material = new THREE.MeshLambertMaterial({
 				map: tex1,
 				side: THREE.DoubleSide
 			});
-			//localStorage.setItem ("mid_p", mid_p = 1);
+			localStorage.setItem ("mid_p", mid_p = 1);
 		}
 	}
 	else if (which === 2) {
@@ -119,21 +168,21 @@ function tst(which) {
 				map: tex2,
 				side: THREE.DoubleSide
 			});
-			//localStorage.setItem ("right_p", right_p = 2);
+			localStorage.setItem ("right_p", right_p = 2);
 		}
 		if (leftA){
 			left_mesh.material = new THREE.MeshLambertMaterial({
 				map: tex2,
 				side: THREE.DoubleSide
 			});
-			//localStorage.setItem ("left_p", left_p = 2);
+			localStorage.setItem ("left_p", left_p = 2);
 		}
 		if(midA){
 			mid_mesh.material = new THREE.MeshLambertMaterial({
 				map: tex2,
 				side: THREE.DoubleSide
 			});
-			//localStorage.setItem ("mid_p", mid_p = 2);
+			localStorage.setItem ("mid_p", mid_p = 2);
 		}
 	}
 	else if (which === 3) {
@@ -142,21 +191,21 @@ function tst(which) {
 				map: tex3,
 				side: THREE.DoubleSide
 			});
-			//localStorage.setItem ("right_p", right_p = 3);
+			localStorage.setItem ("right_p", right_p = 3);
 		}
 		if (leftA){
 			left_mesh.material = new THREE.MeshLambertMaterial({
 				map: tex3,
 				side: THREE.DoubleSide
 			});
-			//localStorage.setItem ("left_p", left_p = 3);
+			localStorage.setItem ("left_p", left_p = 3);
 		}
 		if(midA){
 			mid_mesh.material = new THREE.MeshLambertMaterial({
 				map: tex3,
 				side: THREE.DoubleSide
 			});
-			//localStorage.setItem ("mid_p", mid_p = 3);
+			localStorage.setItem ("mid_p", mid_p = 3);
 		}
 	}
 	else if (which === 4) {
@@ -165,21 +214,21 @@ function tst(which) {
 				map: tex4,
 				side: THREE.DoubleSide
 			});
-			//localStorage.setItem ("right_p", right_p = 4);
+			localStorage.setItem ("right_p", right_p = 4);
 		}
 		if (leftA){
 			left_mesh.material = new THREE.MeshLambertMaterial({
 				map: tex4,
 				side: THREE.DoubleSide
 			});
-			//localStorage.setItem ("left_p", left_p = 4);
+			localStorage.setItem ("left_p", left_p = 4);
 		}
 		if(midA){
 			mid_mesh.material = new THREE.MeshLambertMaterial({
 				map: tex4,
 				side: THREE.DoubleSide
 			});
-			//localStorage.setItem ("mid_p", mid_p = 4);
+			localStorage.setItem ("mid_p", mid_p = 4);
 		}
 	}
    
@@ -290,12 +339,22 @@ function init() {
 	scene.add(wall_side_right);
 	pickables_left = [wall_side_right];
 	
-	//left_p = localStorage.getItem ("left_p");
-	//right_p = localStorage.getItem ("right_p");
-	//mid_p = localStorage.getItem ("mid_p");
-
+	left_p = localStorage.getItem ("left_p");
+	right_p = localStorage.getItem ("right_p");
+	mid_p = localStorage.getItem ("mid_p");
+	
+	//var tex_l, tex_m, tex_r;
+	
+	//tex_l = mesh_material(left_p);
+	//tex_m = mesh_material(mid_p);
+	//tex_r = mesh_material(right_p);
+	
+	mesh_material();
 	//right_mesh
-    right_mesh = new THREE.Mesh(new THREE.BoxGeometry(3, 50, 100), new THREE.MeshLambertMaterial());
+    right_mesh = new THREE.Mesh(new THREE.BoxGeometry(3, 50, 100), new THREE.MeshLambertMaterial({
+		map: tex_r,
+		side: THREE.DoubleSide
+	}));
 	right_mesh.position.set(147,50,0);
 	right_mesh.name = "rightA";
 	right_mesh.castShadow = true;
@@ -303,7 +362,10 @@ function init() {
 	scene.add(right_mesh);
 	
 	//left_mesh
-	left_mesh = new THREE.Mesh(new THREE.BoxGeometry(3, 50, 100), new THREE.MeshLambertMaterial());
+	left_mesh = new THREE.Mesh(new THREE.BoxGeometry(3, 50, 100), new THREE.MeshLambertMaterial({
+		map: tex_l,
+		side: THREE.DoubleSide
+	}));
 	left_mesh.position.set(-147,50,0);
 	left_mesh.name = "leftA";
 	left_mesh.castShadow = true;
@@ -311,7 +373,10 @@ function init() {
 	scene.add(left_mesh);
 	
 	//mid_mesh
-	mid_mesh = new THREE.Mesh(new THREE.BoxGeometry(100, 50, 3), new THREE.MeshLambertMaterial());
+	mid_mesh = new THREE.Mesh(new THREE.BoxGeometry(100, 50, 3), new THREE.MeshLambertMaterial({
+		map: tex_m,
+		side: THREE.DoubleSide
+	}));
 	mid_mesh.position.set(0,50,-147);
 	mid_mesh.name = "midA";
 	mid_mesh.castShadow = true;
@@ -433,7 +498,7 @@ function onDocumentMouseDown( event ) {
 		else if (intersects[0].object.name === "midA") pick ("midA");
 		
 	}
-	console.log(intersects[0].object.name,leftA,midA,rightA);
+	console.log(leftA,midA,rightA);
 	
 }
 
@@ -463,12 +528,19 @@ function update() {
 }
 
 function animate() {
-
+	
     controls.update();
 	position_set();
     requestAnimationFrame(animate);
     render();
 	
+	if (log){
+		left_p = 0;
+		mid_p = 0;
+		right_p = 0;
+	}
+	
+	console.log(left_p, mid_p, right_p);
 }
 
 function render() {

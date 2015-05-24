@@ -1,0 +1,133 @@
+
+<!DOCTYPE html>
+<html>
+ <head><script type="text/javascript" src="/D65DD16339AE4F92BBACB44ACF3E3D71/9A20837F-AA00-D446-8DB6-9DF4A80D3995/main.js" charset="UTF-8"></script> 
+</head> 
+
+ <body> 
+
+<script src="http://je0606ff.github.io/3W3D/js/r70/three.min.js"></script>
+<script src="http://je0606ff.github.io/3W3D/js/OrbitControls.js"></script>
+<script src="http://je0606ff.github.io/3W3D/js/Stats.js"></script>
+<script src="http://je0606ff.github.io/3W3D/js/Detector.js"></script>
+
+<script>
+
+var scene, renderer, camera, controls;
+var clock = new THREE.Clock();
+var laalaa, laalaaij;
+var modle = new Array();
+init();
+animate();
+
+function init () 
+{	
+	
+	stats = new Stats();
+	stats.domElement.style.position = 'absolute';
+	stats.domElement.style.top = '0px';
+	stats.domElement.style.zIndex = 100;
+	document.body.appendChild( stats.domElement );	
+	scene = new THREE.Scene();
+
+	camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+	renderer = new THREE.WebGLRenderer();
+	renderer.setClearColor(new THREE.Color(0x888888, 1.0));
+	renderer.setSize(window.innerWidth, window.innerHeight);
+	renderer.shadowMapEnabled = true;
+	document.body.appendChild (renderer.domElement);
+
+	camera.position.y = 80;
+	camera.position.z = 300;
+	camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+	controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+	var loader = new THREE.JSONLoader();
+	loader.load('http://je0606ff.github.io/3W3D/models/laalaa.js', addModelToScene);
+	
+	spotLight = new THREE.SpotLight(0xffffff, 1);
+    spotLight.position.set(0, 300, 300);
+    spotLight.angle = Math.PI / 3;
+    spotLight.castShadow = true;
+    spotLight.shadowMapWidth = 1024;
+    spotLight.shadowMapHeight = 1024;
+    spotLight.shadowCameraNear = 5;
+    spotLight.shadowCameraFar = 4000;
+    spotLight.shadowCameraFov = spotLight.angle / Math.PI * 180;
+    spotLight.exponent = 20;
+    scene.add(spotLight);
+	
+	var ambientLight = new THREE.AmbientLight(0x555555);
+    scene.add(ambientLight);
+	
+    var ground = new THREE.Mesh(
+        new THREE.PlaneBufferGeometry (400, 400, 130, 130),new THREE.MeshLambertMaterial(
+		{
+        side: THREE.DoubleSide
+		}));
+    ground.rotation.x = -Math.PI / 2;
+    scene.add(ground);
+    ground.receiveShadow = true;
+	
+	
+	window.addEventListener ('resize', onWindowResize, false);	
+}
+
+
+function addModelToScene(geometry, materials) {
+    var mat = new THREE.MeshBasicMaterial({
+		map: THREE.ImageUtils.loadTexture("http://je0606ff.github.io/3W3D/models/laalaa.png"),
+		morphTargets: true, morphNormals: true
+	});
+	
+    laalaa = new THREE.MorphAnimMesh(geometry, mat);
+	laalaa.parseAnimations();
+	laalaa.playAnimation('run', 10);
+	laalaa.position.set(0,25,0);
+	laalaa.castShadow = true;
+	laalaa.receiveShadow = true;
+    laalaa.rotation.y = Math.PI/2;
+	
+	var k = 0;
+	for (var i = -2; i <= 2; i++){
+		for (var j = -2; j <= 2; j++) {
+			laalaaij = laalaa.clone();
+			laalaaij.playAnimation('run', 10);
+			laalaaij.position.set(50 * i, 25, 50 * j);
+			modle[k] = laalaaij;
+			k++;
+			scene.add(laalaaij);
+		}
+	}
+}
+
+function onWindowResize()
+{
+	camera.aspect = window.innerWidth / window.innerHeight;
+	camera.updateProjectionMatrix();
+	renderer.setSize (window.innerWidth, window.innerHeight);
+}
+
+
+function animate() {
+	var delta = clock.getDelta();
+	stats.update();
+    requestAnimationFrame(animate);
+    controls.update();
+	if (laalaa !== undefined) laalaa.updateAnimation(delta * 1000);
+	
+	for (var i = 0; i < 25; i++){
+		modle[i].updateAnimation(delta * 1000);
+	}
+    render();
+}
+
+function render() {
+    renderer.render(scene, camera);
+}
+
+</script>  
+ </body>
+</html>

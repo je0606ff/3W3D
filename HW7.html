@@ -301,11 +301,6 @@ function init() {
 	
     ground = new THREE.Mesh(new THREE.PlaneGeometry(200, 200, 130, 130), ground_material);
 	
-	/*ground = new THREE.Mesh(new THREE.PlaneGeometry(200, 200, 130, 130),
-    new THREE.MeshLambertMaterial({
-        color: 0xffffff
-    }));*/
-	
     ground.rotation.x = -Math.PI / 2;
     scene.add(ground);
 
@@ -316,6 +311,7 @@ function init() {
 	
     // start first new puck
 	setTimeout (startNewPuck, 3000);
+	setTimeout (countSecond,0);
 	
 	//controls
     controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -421,6 +417,15 @@ function showtext() {
 	scene.add(text);
 }
 
+function countSecond() {
+	if (life != 0){
+		time = time + 1;
+		setTimeout("countSecond( )", 1000)/60;
+	}
+	else
+	clearTimeout(time);
+}
+
 function animate() {
 	
     var dt = clock.getDelta();
@@ -438,12 +443,11 @@ function animate() {
 		life = 5;
 		life = life - count;
 		count = 0;
-		time = setTimeout("",0)/60;
 	}
 	else {
 		//showtext();
 		count++;
-		clearTimeout(time);
+		//clearTimeout(time);
 		life = 0;
 	}
 	

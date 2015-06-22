@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html>
+<style>
+	#container {
+		width:60%;
+		float:left;
+		background-color:pink;
+	    margin-top: 5px;
+	}
+	#cnvsFrame {
+		height: 0;
+		padding-bottom:60%;
+	}
+	
+	#info {
+		position: absolute;
+		top: 20px;
+		font-size: 40px;
+		width: 100%;
+		text-align: center;
+		color: #00ffff;
+	}
+	#life {
+		position: absolute;
+		top: 100px;
+		width: 100%;
+		font-size: 40px;
+		color: #ffffff;
+		text-align: left;
+	}
+	body {
+		overflow: hidden;
+	}
+</style>
+
+<head>
+<script type="text/javascript" src="/D65DD16339AE4F92BBACB44ACF3E3D71/975EF2DE-E20A-1645-9991-720DD82315FE/main.js" charset="UTF-8"></script>
+</head>
+
+<body> 
+<div id="life"></div>
+
+<h1> HW6 I3B02 </h1>
+
+<hr>
+<div id="container" >
+<div id="cnvsFrame">
+	<canvas id="cnvs"> </canvas>
+</div>
+</div>
+
+
+
+<script src="http://je0606ff.github.io/3W3D/js/r69/three.min.js"></script>
+<script src="http://je0606ff.github.io/3W3D/js/OrbitControls.js"></script>
+<script src="http://je0606ff.github.io/3W3D/js/KeyboardState.js"></script>
+<script src="http://je0606ff.github.io/3W3D/js/jquery-1.11.1.js"></script>
+<script src='js/threex.text.js'></script>
+<script src="js/droid_serif_bold.typeface.js"></script>
+
+<script id="vertexShader" type="x-shader/x-vertex">
+    varying vec2 vUv;
+    
+    void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+</script>
+<script id="fragmentShader" type="x-shader/x-fragment">
+    uniform float time;
+    varying vec2 vUv;
+    
+    float rand(vec2 co) {
+        return fract(sin(dot(co.xy, vec2(12.9898, 78.233))) * 43758.5453);
+    }
+
+    void main(void) {
+        // Divide the coordinates into a grid of squares
+    vec2 v = vUv*10.0; //gl_FragCoord.xy / 20.0;
+        // Calculate a pseudo-random brightness value for each square
+        vec3 brightness = vec3(fract(rand(floor(v)) + time), fract(rand(floor(v)) + time / 3.), fract(rand(floor(v)) + time / 5.));
+        // Reduce brightness in pixels away from the square center
+        brightness *= 0.5 - length(fract(v) - vec2(0.5, 0.5));
+        gl_FragColor = vec4(brightness.r * 4.0, brightness.g * brightness.b * 2., brightness.b - brightness.r + 0.2, 1.0);
+    }
+</script>
+
+
+<script>
+var camera, scene, renderer, geometry, material, mesh, controls, ground_material;
+var clock = new THREE.Clock();
+var keyboard = new KeyboardState();
+var mouse = new THREE.Vector2();
+var pucks = [];
+var paddles = [];
+var which = 0;
+var life = 5;
+var width = 80;
+var wall = 80;
+var info;
+var time = 0;
+var count = 0;
+var lifetmp = 0;
+var raycaster;
+
+var Puck = function () {
+    this.vel = new THREE.Vector3();
+    this.pos = new THREE.Vector3();
+    this.pColor = new THREE.Color();
+    this.mesh = new THREE.Mesh();
+	this.id = which;
+	this.out = false;
+    this.pointLight = new THREE.PointLight(0xffffff, 0.3);
+};
+
+Puck.prototype.update = function (dt) {
+    this.pos.add(this.vel.clone().multiplyScalar(dt));
+
+    this.mesh.position.copy(this.pos);
+    this.pointLight.position.set(this.pos.x, 10, this.pos.z);
+    this.pointLight.color = this.pColor;
+    this.mesh.material.color = this.pColor;
+
+};
+
+Puck.prototype.collision = function () {
+    // collision
+    if (this.pos.x > 90) {
+        this.pos.x = 90;
+        this.vel.set(-this.vel.x, 0, this.vel.z);
+        this.pColor.setHSL(Math.random(), Math.random(), Math.random() / 2 + 0.5);
+    } else if (this.pos.x < -90) {
+        this.pos.x = -90;
+        this.vel.set(-this.vel.x, 0, this.vel.z);
+        this.pColor.setHSL(Math.random(), Math.random(), Math.random() / 2 + 0.5);
+    }
+	
+	//out_collision
+	if ( (this.pos.z > 90 && this.pos.x > -mesh.position.x+((80*80/width)/2)) && (this.pos.z > 90 && this.pos.x < mesh.position.x-((80*80/width)/2)) || 
+		(this.pos.z  < -90 && this.pos.x > -mesh.position.x+((80*80/width)/2)) && (this.pos.z < -90 && this.pos.x < mesh.position.x-((80*80/width)/2))) {
+		//
+		delete this.id;
+		this.out = true;
+		scene.remove(this.mesh);
+		scene.remove(this.pointLight);
+		
+	}
+	else if (this.pos.z > 90) {
+			this.pos.z = 90;
+			this.vel.set(this.vel.x, 0, -this.vel.z);
+			this.pColor.setHSL(Math.random(), Math.random(), Math.random() / 2 + 0.5);
+	} else if (this.pos.z < -90) {
+			this.pos.z = -90;
+			this.vel.set(this.vel.x, 0, -this.vel.z);
+			this.pColor.setHSL(Math.random(), Math.random(), Math.random() / 2 + 0.5);
+	}
+	
+	//paddles_collision
+	for (var i = 0; i < paddles.length; i++) {
+		if( parseInt(Math.sqrt(Math.pow((this.pos.x-paddles[i].pos.x),2)+Math.pow((this.pos.z-paddles[i].pos.z),2))) <= 20){
+			this.vel.x = 5*(this.pos.x-paddles[i].pos.x);
+			this.vel.z = 5*(this.pos.z-paddles[i].pos.z);
+		}
+	}
+		
+}
+
+function collision() {
+	
+	for(var i = 0; i < pucks.length; i++){
+		for( j = 1 + i;  j < pucks.length; j++ ){
+			if (Math.sqrt(Math.pow(pucks[i].pos.x-pucks[j].pos.x,2)+Math.pow(pucks[i].pos.z-pucks[j].pos.z,2)) < 20){
+				pucks[i].vel.x = 5*(pucks[i].pos.x-pucks[j].pos.x);
+				pucks[i].vel.z = 5*(pucks[i].pos.z-pucks[j].pos.z);
+			}
+		}
+	}
+}
+
+var Paddle = function () {
+    this.pos = new THREE.Vector3();
+    this.mesh = new THREE.Mesh();
+};
+
+Paddle.prototype.update = function (dt) {
+	this.mesh.position.copy(this.pos);
+}
+
+Paddle.prototype.collision = function () {
+    // collision
+	if (this.pos.x > 90) {
+        this.pos.x = 90;
+    } else if (this.pos.x < -90) {
+        this.pos.x = -90;
+    }
+    if (this.pos.z > 90) {
+        this.pos.z = 90;
+    } else if (this.pos.z < -90) {
+        this.pos.z = -90;
+    }
+}
+
+
+init();
+animate();
+
+function newPuck() {
+	var puck = new Puck();
+	puck.pos = new THREE.Vector3(Math.random(), 0, Math.random());
+	puck.vel = new THREE.Vector3(150 * (Math.random() * 2 - 1), 0, 170 * (Math.random() * 2 - 1));
+	puck.pColor = new THREE.Color(0xff0000);
+	puck.mesh = new THREE.Mesh(new THREE.CylinderGeometry(10, 10, 2, 20),
+	new THREE.MeshBasicMaterial());
+	puck.mesh.material.color = puck.pColor;
+	scene.add(puck.mesh);
+	scene.add(puck.pointLight);
+	return puck;
+}
+
+function newPaddle() {
+    var paddle = new Paddle();
+	paddle.pos = new THREE.Vector3(0, 0, 60);
+    paddle.mesh = new THREE.Mesh(new THREE.CylinderGeometry(10, 10, 2, 20),new THREE.MeshBasicMaterial(
+								{
+									transparent: true,
+									color: 0xffffff,
+									opacity: 0.4
+								}));
+    scene.add(paddle.mesh);
+    return paddle;
+}
+
+function init() {
+	
+	var theCanvas = document.getElementById("cnvs");
+	var theCanvasFrame = document.getElementById("cnvsFrame");
+	
+    renderer = new THREE.WebGLRenderer({
+        canvas: theCanvas,
+        antialias: true
+    });
+	
+	renderer.setSize(theCanvasFrame.clientWidth, theCanvasFrame.clientHeight);
+    renderer.setClearColor(0x888888);
+	
+    scene = new THREE.Scene();
+
+    camera = new THREE.PerspectiveCamera(50, theCanvasFrame.clientWidth/theCanvasFrame.clientHeight, 1, 1000);
+    camera.position.y = 300;
+    scene.add(camera);
+	
+	//mesh
+    geometry = new THREE.BoxGeometry(220, 30, 10);
+    geometry1 = new THREE.BoxGeometry(width, 30, 10);
+	
+    material = new THREE.MeshBasicMaterial({
+        transparent: true,
+        color: 0xffffff,
+        opacity: 0.4
+    });
+	
+	//TOP&Bottom_right_mesh
+	mesh = new THREE.Mesh(geometry1, material);
+    mesh.position.set(60, 15, 105);
+    scene.add(mesh);
+    mesh1 = mesh.clone();
+    mesh1.position.set(60, 15, -105);
+	
+	//TOP&Bottom_left_mesh
+    scene.add(mesh1);
+	mesh2 = mesh.clone();
+    mesh2.position.set(-60, 15, 105);
+    scene.add(mesh2);
+	mesh3 = mesh.clone();
+    mesh3.position.set(-60, 15, -105);
+    scene.add(mesh3);
+	
+	//right_mesh
+    mesh4 = new THREE.Mesh(geometry, material);
+    mesh4.rotation.y = Math.PI / 2;
+    mesh4.position.set(105, 15, 0);
+    scene.add(mesh4);
+	
+	//left_mesh
+    mesh5 = mesh4.clone();
+    mesh5.rotation.y = Math.PI / 2;
+    mesh5.position.set(-105, 15, 0);
+    scene.add(mesh5);
+	
+	//ground
+	ground_material = new THREE.ShaderMaterial({
+        uniforms: {
+            time: {
+                type: 'f',
+                value: 1.0
+            }
+        },
+        vertexShader: document.getElementById('vertexShader').textContent,
+        fragmentShader: document.getElementById('fragmentShader').textContent
+    });
+	
+    ground = new THREE.Mesh(new THREE.PlaneGeometry(200, 200, 130, 130), ground_material);
+	
+	/*ground = new THREE.Mesh(new THREE.PlaneGeometry(200, 200, 130, 130),
+    new THREE.MeshLambertMaterial({
+        color: 0xffffff
+    }));*/
+	
+    ground.rotation.x = -Math.PI / 2;
+    scene.add(ground);
+
+	// add first puck $ paddle
+    pucks.push(newPuck(which));
+	paddles.push(newPaddle());
+	paddles.push(newPaddle());
+	
+    // start first new puck
+	setTimeout (startNewPuck, 3000);
+	
+	//controls
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+	
+	//raycaster
+	raycaster = new THREE.Raycaster();
+	
+	//ambientLight
+    var ambientLight = new THREE.AmbientLight(0x111111);
+    scene.add(ambientLight);
+	
+	info = window.document.getElementById('life');
+	window.addEventListener( 'mousemove', onDocumentMouseMove, false );
+}
+
+function startNewPuck() {
+	which++;
+	var thispuck = newPuck();
+	pucks.push(thispuck);
+    if (life > 0 )
+		setTimeout (startNewPuck, 1000);
+	else showtext();
+}
+
+function showtext() {
+
+	var text = new THREEx.Text('Game Over!');
+	text.scale.multiplyScalar(30);
+	text.position.set(0,0,0);
+	text.rotation.x = -Math.PI / 2;
+	scene.add(text);
+	
+}
+
+function transformative_wall() {
+	if( wall <= 30 ){
+		wall = wall;
+		width = width;
+	}
+	else{
+		//TOP&Bottom_right_mesh 01
+		mesh.scale.x = 80/width;
+		mesh.position.set((100-wall) + wall/2,15,105);
+		mesh1.scale.x = 80/width;
+		mesh1.position.set((100-wall) + wall/2,15,-105);
+		
+		//TOP&Bottom_left_mesh 23
+		mesh2.scale.x = 80/width;
+		mesh2.position.set((-100+wall) - wall/2,15,105);
+		mesh3.scale.x = 80/width;
+		mesh3.position.set((-100+wall) - wall/2,15,-105);
+		
+		wall -= 0.1;
+		width += 0.1;
+	}
+}
+
+function cursorPositionInCanvas(canvas, event) {
+
+	var x, y;
+	canoffset = $(canvas).offset();
+	x = event.clientX + document.body.scrollLeft + document.documentElement.scrollLeft - Math.floor(canoffset.left);
+	y = event.clientY + document.body.scrollTop + document.documentElement.scrollTop - Math.floor(canoffset.top) + 1;
+	return [x,y];
+	
+}
+
+function onDocumentMouseMove( event ) {
+
+	var theCanvas = document.getElementById("cnvs");
+	var theCanvasFrame = document.getElementById("cnvsFrame");
+	
+    event.preventDefault();
+	mouse.x = ((cursorPositionInCanvas( renderer.domElement, event )[0]) / $(theCanvas).width()) * 2 - 1;
+	mouse.y = - ((cursorPositionInCanvas( renderer.domElement, event )[1])/ $(theCanvas).height()) * 2 + 1;
+	
+    var vector = new THREE.Vector3(mouse.x, mouse.y, 1).unproject(camera);
+	raycaster.set(camera.position, vector.sub(camera.position).normalize());
+	
+	var intersects = raycaster.intersectObject( ground );
+	if (intersects.length > 0) {
+		var move = intersects[0].point.clone();
+		for (var i = 0; i < 2; i++){
+			if ( i % 2 != 0 ){
+				paddles[i].pos.x = move.x;
+				paddles[i].pos.y = 0;
+				paddles[i].pos.z = 60;
+			}
+			else{
+				paddles[i].pos.x = move.x;
+				paddles[i].pos.y = 0;
+				paddles[i].pos.z = -60;
+			}
+		}
+	}
+}
+
+function showtext() {
+	var text = new THREEx.Text('Game Over!');
+	text.scale.multiplyScalar(30);
+	text.position.set(0,0,0);
+	text.rotation.x = -Math.PI / 2;
+	scene.add(text);
+}
+
+function animate() {
+	
+    var dt = clock.getDelta();
+	
+	//ground_material
+	ground_material.uniforms.time.value += dt * 2;
+	
+	
+	//time_set&count_life 
+	for (var i = 0; i < pucks.length; i++)
+		if (pucks[i].out == true)
+			count++;
+			
+	if (life != 0){
+		life = 5;
+		life = life - count;
+		count = 0;
+		time = setTimeout("",0)/60;
+	}
+	else {
+		//showtext();
+		count++;
+		clearTimeout(time);
+		life = 0;
+	}
+	
+	
+	transformative_wall();
+	collision() 
+	
+	//update_pucks
+	pucks.forEach(function (puck) {
+		puck.update(dt);
+		puck.collision();
+	});
+	
+	//update_paddles
+	paddles.forEach(function (paddle) {
+		paddle.update(dt);
+        paddle.collision();
+    });
+	
+	//show_HUD
+	var text = 'life: ' + life + '</br> time: ' + Math.round(time) + 'sec';
+    info.innerHTML = text;
+	
+	//console.log(pucks[i].out);
+	keyboard.update();
+    controls.update();
+    requestAnimationFrame(animate);
+    renderer.render(scene, camera);
+}
+</script>
+</body>
+
+</html>

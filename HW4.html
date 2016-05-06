@@ -390,6 +390,9 @@ function init()
     spotLight.target = footboard;
 	
     scene.add(spotLight);
+
+    var spotLightHelper = new THREE.SpotLightHelper( spotLight );
+	scene.add( spotLightHelper );
 	
 	var ground_material = new THREE.MeshLambertMaterial({
 		map: floor,
